@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -1113,35 +1114,104 @@ public class StudentGUI {
 	}
 	
 	private JPanel reportPanel() {
+		
 		JPanel panel = new JPanel();
 		
-		JPanel reportDataPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		ArrayList<JLabel> data = new ArrayList<JLabel>();
+		JPanel generatePanel = new JPanel();
+		JButton generate = new JButton("Generate Report");
+		generatePanel.add(generate);
 		
-		JPanel generatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		JButton generateButton = new JButton("Generate Report");
-		generateButton.setPreferredSize(new Dimension(500, 500));
-		generatePanel.add(generateButton);
-		
-		generateButton.addActionListener(e -> {
-			Message reportResponse = null;
+		JLabel reportLabel = new JLabel();
+		JScrollPane scrollPane = new JScrollPane(reportLabel);
+		panel.add(generate);
+		panel.add(scrollPane);
+
+		generate.addActionListener(e -> {
+			// sends message to create course to server
+			Message message = null;
+ 						
+			message = new Message(Type.REPORT, Status.NULL, "Report request");
 			try {
-				reportResponse = (Message) in.readObject();
-			} catch(ClassNotFoundException | IOException e1) {
+				out.writeObject(message);
+			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			String[] reportFileData = reportResponse.getText().split(",");
 			
-			for (int i = 0; i < reportFileData.length; i++) {
-				JLabel newData = new JLabel(reportFileData[i]);
-				data.add(newData);
-				reportDataPanel.add(data.get(i));
+			Message generateReportRequest = null;
+			try {
+				generateReportRequest = (Message) in.readObject();
+			} catch (ClassNotFoundException | IOException e1) {
+				e1.printStackTrace();
 			}
+			String msg = generateReportRequest.getText();
+			switch(generateReportRequest.getStatus()) {
+			case SUCCESS:
+        		JOptionPane.showMessageDialog(panel, msg, "Hogwarts", JOptionPane.INFORMATION_MESSAGE);
+				break;
+			case FAILED:
+        		JOptionPane.showMessageDialog(panel, msg, "Hogwarts", JOptionPane.ERROR_MESSAGE);
+				break;
+			default:
+				break;
+			}
+			
+			String[] reportData = generateReportRequest.getText().split(",");
+			String labelLine = "";
+			for (String data : reportData) {
+				labelLine += data + "\n";
+			}
+			reportLabel.setName(labelLine);
 		});
-		
-		panel.add(reportDataPanel);
-		panel.add(generatePanel);
-		
+//		panel.add(scrollPane);
 		return panel;
+		/*
+		JPanel panel = new JPanel();
+		// send request to get report data
+		Message reportRequest = new Message(Type.REPORT, Status.NULL, "Report request");
+		try {
+			out.writeObject(reportRequest);;
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		/*
+		// get response message
+		Message reportResponse = null;
+		while (reportResponse == null) {
+			try {
+				reportResponse = (Message) in.readObject();
+			} catch (IOException | ClassNotFoundException e) {
+				e.printStackTrace();
+		}
+		try {
+			reportResponse = (Message) in.readObject();
+		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		switch(reportResponse.getStatus()) {
+		case SUCCESS:
+			JOptionPane.showMessageDialog(panel, reportResponse.getText(), "Hotwarts", JOptionPane.INFORMATION_MESSAGE);
+			break;
+		case FAILED:
+			JOptionPane.showMessageDialog(panel, reportResponse.getText(), "Hogwarts", JOptionPane.ERROR_MESSAGE);
+			break;
+		default:
+			break;
+		}*/
+		//DefaultTableModel tableModel = new DefaultTableModel();
+		//tableModel.addColumn("Report Data");
+		/*
+		String[] reportData = reportResponse.getText().split(",");
+		int rowCounter = 0;
+		for (String data : reportData) {
+			tableModel.insertRow(rowCounter, new Object[] { data });;
+			rowCounter += 1;
+		}
+		*/
+		//JTable reportDataTable = new JTable(tableModel);
+		//JScrollPane scrollPane = new JScrollPane(reportDataTable);
+		
+		//panel.add(scrollPane);
+		
+		//return panel;*/
 	}
 }

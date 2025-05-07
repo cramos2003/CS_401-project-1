@@ -9,6 +9,7 @@ public class Message implements Serializable {
     protected UserType userType;
     protected String text;
     protected ArrayList<String> list;
+    
 
     public Message(){
         this.type = null;

@@ -79,7 +79,7 @@ class Server {
 				
 				InputStream inputStream = clientSocket.getInputStream();
 				OutputStream outputStream = clientSocket.getOutputStream();
-					
+
 				out = new ObjectOutputStream(outputStream);
 				in = new ObjectInputStream(inputStream);
 
@@ -93,6 +93,7 @@ class Server {
 	                		break;
 	                
 	                    case CONNECT:
+	   
 	                    	System.out.println("Received connection request.");
 	                        Message loginResponse = new Message(Type.LOGIN, Status.SUCCESS, "Welcome!");
 	                        out.writeObject(loginResponse);
@@ -146,14 +147,16 @@ class Server {
 	                    case ADD_HOLD:
 	                    	addHold(message);
 	                    	break;
+	                    	
+	                    case REPORT:
+	                    	report(message);
+	                    	break;
+
 	                    case REMOVE_HOLD:
 	                    	//removeHold(message);
 	                    	break;
 	                    case VIEW_STUDENTS:
 	                    	//viewStudents(message);
-	                    	break;
-	                    case REPORT:
-	                    	report();
 	                    	break;
 	                    	
 	                    default:
@@ -193,7 +196,6 @@ class Server {
 		        }
 		        return;
 		    }
-
 		    String info = currentStudent.toString();
 		    Message infor = new Message(Type.PROFILE, Status.SUCCESS, info);
 
@@ -203,7 +205,6 @@ class Server {
 		        e.printStackTrace();
 		    }
 		}
-
 
 		private void handleDropCourse(Message message) {
 			
@@ -282,6 +283,7 @@ class Server {
 			System.out.println("Received catalog request.");
 			
 			ArrayList<String> list = uni.getCorse();
+			
 			
 			Message catalogResponse = new Message(Type.GET_CATALOG, Status.SUCCESS, "", list);
 			out.writeObject(catalogResponse);
@@ -528,34 +530,22 @@ class Server {
 				e.printStackTrace();
 			}
 		}
-		private void report() {
-			Message reportMessage = null;
-			
+		
+		private void report(Message message) throws FileNotFoundException {
 			String fileName = "report.txt";
-			File file = new File(fileName);
-			if (!file.exists()) {
-				// sends user message that file doesn't exist
-				reportMessage = new Message(Type.REPORT, Status.FAILED, "File doesn\'t exist.");
-				try {
-					out.writeObject(reportMessage);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				return;
-			}
 			
-			// read from report.txt file
+			File file = new File(fileName);
+			Scanner scanner = new Scanner(file);
 			String line = "";
-			Scanner scanner = new Scanner(System.in);
 			while (scanner.hasNextLine()) {
 				line += scanner.nextLine() + ",";
 			}
 			scanner.close();
-			// send file info in message to client
-			reportMessage = new Message(Type.REPORT, Status.SUCCESS, line);
+			System.out.println(line);
+			message = new Message(Type.REPORT, Status.SUCCESS, line);
 			try {
-				out.writeObject(reportMessage);
-			} catch(IOException e) {
+				out.writeObject(message);
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
