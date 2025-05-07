@@ -105,7 +105,11 @@ class Server {
 	
 	                    case LOGOUT:
 	                    	System.out.println("Client logged out.");
-                            clientSocket.close();
+	                    	// So it logs user whenever they logout.
+	                    	if (currentStudent != null) {
+	                    	    ReportLogger.logSystemEvent(currentStudent.getName() + " logged out.");
+	                    	}
+	                    	clientSocket.close();
 	                        return;
 	                        
 	                    case GET_CATALOG:
@@ -217,7 +221,8 @@ class Server {
 		    course.removeStudent(currentStudent);
 		    
 		    currentStudent.save();
-			
+		    
+		    ReportLogger.logSystemEvent(currentStudent.getName() + " dropped " + title);
 		}
 
 		private void handleGetList(Message message) {
@@ -264,12 +269,16 @@ class Server {
 				break;
 				
 			case "YAY":
-				
+			    
 				response = new Message(Type.ENROLL_COURSE_STUDENT, Status.SUCCESS, 
-					    "Brilliant! You’re now enrolled in the course. Time to sharpen your wand and your mind!");
-				out.writeObject(response);
+			        "Brilliant! You’re now enrolled in the course. Time to sharpen your wand and your mind!");
+			    out.writeObject(response);
+			    // So it logs when student enrolled in a course.
+			    ReportLogger.logSystemEvent(currentStudent.getName() + " enrolled in " + title);
 			    course.addStudent(currentStudent);
-				break;
+			    
+			    break;
+
 			
 				
 			}
@@ -330,7 +339,9 @@ class Server {
 
 		            if (password.equals(storedPassword)) {
 		            	currentStudent = uni.getStudentByName(storedName);
-		                System.out.println("Login successful.");
+		            	System.out.println("Login successful.");
+		            	// So when someone logs in, it will log it in the txt file.
+		            	ReportLogger.logSystemEvent(storedName + " logged in.");
 		                
 		                ArrayList<String> enrolledTitles = new ArrayList<>();
 		                for (Course c : currentStudent.getCourseList()) {
@@ -531,6 +542,7 @@ class Server {
 			}
 		}
 		
+<<<<<<< HEAD
 		private void report(Message message) throws FileNotFoundException {
 			String fileName = "report.txt";
 			
@@ -548,6 +560,46 @@ class Server {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+=======
+		private void report() {
+		    Message reportMessage;
+
+		    String fileName = "report.txt";
+		    File file = new File(fileName);
+		    if (!file.exists()) {
+		        reportMessage = new Message(Type.REPORT, Status.FAILED, "File doesn’t exist.");
+		        try {
+		            out.writeObject(reportMessage);
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+		        return;
+		    }
+
+		    // Changed it to this from Scanner scanner since it was hanging.
+		    StringBuilder reportContent = new StringBuilder();
+		    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+		        String line;
+		        while ((line = reader.readLine()) != null) {
+		            reportContent.append(line).append(",");
+		        }
+		    } catch (IOException e) {
+		        reportMessage = new Message(Type.REPORT, Status.FAILED, "Error reading report.");
+		        try {
+		            out.writeObject(reportMessage);
+		        } catch (IOException ex) {
+		            ex.printStackTrace();
+		        }
+		        return;
+		    }
+
+		    reportMessage = new Message(Type.REPORT, Status.SUCCESS, reportContent.toString());
+		    try {
+		        out.writeObject(reportMessage);
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		    }
+>>>>>>> branch 'main' of https://github.com/cramos2003/CS_401-project-1.git
 		}
 	}
 	
